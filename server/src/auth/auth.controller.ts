@@ -1,11 +1,15 @@
-import { Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { GoogleOauthGuard } from 'src/guards/google-oauth.guard';
 import { AuthService } from './auth.service';
 import { JwtGuard } from 'src/guards/jwt.guard';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UsersService,
+  ) {}
   @Get('google')
   @UseGuards(GoogleOauthGuard)
   async googleLogin() {}
@@ -29,7 +33,11 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtGuard)
   profile(@Req() req) {
-    return req.user;
+    const user = this.userService.findOne({ email: req.user?.email });
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+    return user;
   }
 
 

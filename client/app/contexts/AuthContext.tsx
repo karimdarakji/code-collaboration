@@ -9,14 +9,17 @@ import {
   useState,
 } from "react";
 import api from "../api/axiosInstance";
+import { usePathname, useRouter } from "next/navigation";
 
 interface AuthContextValues {
-  user: any;
+  user: UserProfile | null;
 }
 
 const AuthContext = createContext<AuthContextValues | null>(null);
 
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +27,15 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     try {
       const { data } = await api.get("/auth/profile");
       setUser(data);
-    } catch (error) {
+      if (pathname === '/') {
+        router.replace('/sessions');
+      }
+    } catch (err: any) {
+      if (err.response && err.response.status === 401) {
+        if (pathname !== '/') {
+          router.replace('/');
+        }
+      }
       setUser(null);
     } finally {
       setLoading(false);

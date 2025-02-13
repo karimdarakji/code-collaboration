@@ -1,5 +1,5 @@
-import { Schema } from 'mongoose';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ObjectId, Schema } from 'mongoose';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenService } from './refresh-token.service';
@@ -14,7 +14,7 @@ export class AuthService {
   ) {}
 
   async generateTokens(profile: User) {
-    let user = await this.userService.findByEmail(profile.email);
+    let user = await this.userService.findOne({ email: profile.email });
     if (!user) {
       user = await this.userService.create({
         googleId: profile.googleId,
@@ -26,7 +26,10 @@ export class AuthService {
 
     const userId = user._id as Schema.Types.ObjectId;
 
-    const payload = { sub: userId, email: user.email };
+    const payload = {
+      sub: profile.googleId,
+      email: user.email,
+    };
     const accessToken = this.jwtService.sign(payload, { expiresIn: process.env.ACCESS_TOKEN_LIFECYCLE });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: process.env.REFRESH_TOKEN_LIFECYCLE });
 
@@ -44,9 +47,15 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
-    const userId = payload.sub;
+    const googleId = payload.sub;
+    const user = await this.userService.findOne({ googleId });
+
+    if (!user) {
+      throw new NotFoundException('user not found!');
+    }
+
     const dbToken = await this.refreshTokenService.findValidRefreshToken(
-      userId,
+      user._id as ObjectId,
       oldRefreshToken,
     );
     if (!dbToken) {
@@ -55,7 +64,7 @@ export class AuthService {
     // Delete the old refresh token.
     await this.refreshTokenService.deleteRefreshToken(dbToken._id as Schema.Types.ObjectId);
 
-    const newPayload = { sub: userId, email: payload.email };
+    const newPayload = { sub: googleId, email: payload.email };
     const newAccessToken = this.jwtService.sign(newPayload, {
       expiresIn: process.env.ACCESS_TOKEN_LIFECYCLE,
     });
@@ -63,7 +72,7 @@ export class AuthService {
       expiresIn: process.env.REFRESH_TOKEN_LIFECYCLE,
     });
     await this.refreshTokenService.createRefreshToken(
-      userId,
+      user._id as ObjectId,
       newRefreshToken,
     );
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
