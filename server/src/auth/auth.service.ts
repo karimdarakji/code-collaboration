@@ -29,6 +29,7 @@ export class AuthService {
     const payload = {
       sub: profile.googleId,
       email: user.email,
+      id: user._id,
     };
     const accessToken = this.jwtService.sign(payload, { expiresIn: process.env.ACCESS_TOKEN_LIFECYCLE });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: process.env.REFRESH_TOKEN_LIFECYCLE });
@@ -64,7 +65,11 @@ export class AuthService {
     // Delete the old refresh token.
     await this.refreshTokenService.deleteRefreshToken(dbToken._id as Schema.Types.ObjectId);
 
-    const newPayload = { sub: googleId, email: payload.email };
+    const newPayload = {
+      sub: googleId,
+      email: payload.email,
+      id: user._id,
+    };
     const newAccessToken = this.jwtService.sign(newPayload, {
       expiresIn: process.env.ACCESS_TOKEN_LIFECYCLE,
     });

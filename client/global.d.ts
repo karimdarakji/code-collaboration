@@ -4,7 +4,9 @@ declare global {
     }
 
     interface UserProfile {
-        name: string;
+      _id: ObjectId;
+      name: string;
+      avatar: string;
     }
 }
 

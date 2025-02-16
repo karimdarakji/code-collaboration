@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { RefreshTokenModule } from './auth/refresh-token.module';
+import { SessionsModule } from './sessions/sessions.module';
+import { MailerModule } from './mailer/mailer.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { RefreshTokenModule } from './auth/refresh-token.module';
     UsersModule,
     AuthModule,
     RefreshTokenModule,
+    SessionsModule,
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

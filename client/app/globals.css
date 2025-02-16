@@ -20,6 +20,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+input, textarea, select {
+  color: black;
+}
+
 .cm-editor .cm-ySelectionInfo {
   position: absolute;
   top: -1.6em;
