@@ -31,12 +31,12 @@ const CreateSessionModal = ({ show, onClose }: CreateSessionModalProps) => {
       if (!session.title) {
         return;
       }
-      const res = await api.post("sessions", {
+      const data = await api<Session>("POST", "sessions", {
         title: session.title,
         description: session.description,
         visibility: session.visibility,
       });
-      router.push(`/sessions/${res.data.slug}`);
+      router.push(`/sessions/${data.slug}`);
     } catch (error: any) {
       if (error?.response) {
         setError(error.response.data.message);

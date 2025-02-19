@@ -12,7 +12,7 @@ import api from "../api/axiosInstance";
 import { usePathname, useRouter } from "next/navigation";
 
 interface AuthContextValues {
-  user: UserProfile | null;
+  user?: UserProfile;
 }
 
 const AuthContext = createContext<AuthContextValues | null>(null);
@@ -20,12 +20,12 @@ const AuthContext = createContext<AuthContextValues | null>(null);
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<UserProfile>();
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
     try {
-      const { data } = await api.get("/auth/profile");
+      const data = await api<UserProfile>("GET", "auth/profile");
       setUser(data);
       if (pathname === '/') {
         router.replace('/sessions');
@@ -36,7 +36,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
           router.replace('/');
         }
       }
-      setUser(null);
+      setUser(undefined);
     } finally {
       setLoading(false);
     }

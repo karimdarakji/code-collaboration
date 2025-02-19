@@ -6,12 +6,12 @@ declare module 'axios' {
   }
 }
 
-const api: AxiosInstance = axios.create({
+const axiosApi: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   withCredentials: true,
 });
 
-api.interceptors.response.use(
+axiosApi.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest: AxiosRequestConfig = error.config;
@@ -29,9 +29,9 @@ api.interceptors.response.use(
     if (!originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await api.post('/auth/refresh');
+        await api('POST', '/auth/refresh');
         // After a successful refresh, retry the original request.
-        return api(originalRequest);
+        return axiosApi(originalRequest);
       } catch (refreshError) {
         console.error('Refresh token failed:', refreshError);
         return Promise.reject(refreshError);
@@ -41,5 +41,15 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const api = async <T>(
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  url: string,
+  data?: any
+): Promise<T> => {
+  return axiosApi
+    .request<T>({ method, url, data })
+    .then((res) => res.data);
+};
 
 export default api;

@@ -25,7 +25,7 @@ export class SessionsController {
 
   @Get()
   async findAll(@Request() req) {
-    return this.sessionsService.getSessionsForUser(req.user.id);
+    return this.sessionsService.getSessionsForUser(req.user.userId);
   }
 
   @Post(':sessionId/invite')

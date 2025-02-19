@@ -8,6 +8,14 @@ declare global {
       name: string;
       avatar: string;
     }
+
+    interface Session {
+      _id: string;
+      slug: string;
+      participants: UserProfile[];
+      title: string;
+      description: string;
+    }
 }
 
 export {};

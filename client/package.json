@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.2",
+    "@tanstack/react-query": "^5.66.7",
     "@uiw/react-codemirror": "^4.23.8",
     "axios": "^1.7.9",
     "codemirror": "^6.0.1",

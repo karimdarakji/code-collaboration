@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+'use client';
+
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "./contexts/AuthContext";
 
 import "./globals.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,24 +16,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Code Collaboration",
-  description: "Interactive coding experience",
-};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const queryClient = new QueryClient();
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-r from-gray-900 to-gray-800`}
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

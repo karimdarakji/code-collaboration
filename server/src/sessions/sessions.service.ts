@@ -100,6 +100,6 @@ export class SessionsService {
   }
 
   async getSessionsForUser(userId: string): Promise<Session[]> {
-    return this.sessionModel.find({ participants: userId }).exec();
+    return this.sessionModel.find({ participants: userId }).populate('participants').exec();
   }
 }
