@@ -35,13 +35,13 @@ export class SessionsService {
     return session.save();
   }
 
-  async deleteSession(sessionId: string, userId: Types.ObjectId) {
+  async deleteSession(sessionId: string, userId: string) {
     const session = await this.sessionModel.findById(sessionId);
     if (!session) {
       throw new NotFoundException('Session not found');
     }
 
-    if (session.createdBy !== userId) {
+    if (session.createdBy.toString() !== userId) {
       throw new ForbiddenException(
         'You are not allowed to delete this session',
       );
@@ -118,6 +118,16 @@ export class SessionsService {
   async getSessionsForUser(userId: string): Promise<Session[]> {
     return this.sessionModel
       .find({ participants: userId })
+      .populate('participants')
+      .exec();
+  }
+
+  async getSessionForUser(
+    userId: string,
+    sessionId: string,
+  ): Promise<Session | null> {
+    return this.sessionModel
+      .findOne({ participants: userId, _id: sessionId })
       .populate('participants')
       .exec();
   }

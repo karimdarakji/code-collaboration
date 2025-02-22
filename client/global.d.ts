@@ -2,7 +2,7 @@ import { SessionVisibility } from "./contants";
 
 declare global {
   interface Window {
-    google?: any;
+    google?: unknown;
   }
 
   interface UserProfile {
@@ -18,6 +18,10 @@ declare global {
     title: string;
     description: string;
     visibility: SessionVisibility;
+  }
+
+  interface QueryParams {
+    sessionId?: string;
   }
 }
 

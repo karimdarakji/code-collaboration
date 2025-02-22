@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
-declare module 'axios' {
+declare module "axios" {
   export interface AxiosRequestConfig {
     _retry?: boolean;
   }
@@ -21,7 +21,8 @@ axiosApi.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (originalRequest.url?.includes('/auth/refresh')) {
+    if (originalRequest.url?.includes("/auth/refresh")) {
+      await axiosApi.post("/auth/logout", {}, { withCredentials: true });
       return Promise.reject(error);
     }
 
@@ -29,27 +30,27 @@ axiosApi.interceptors.response.use(
     if (!originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await api('POST', '/auth/refresh');
+        await api("POST", "/auth/refresh");
         // After a successful refresh, retry the original request.
         return axiosApi(originalRequest);
       } catch (refreshError) {
-        console.error('Refresh token failed:', refreshError);
+        // If refresh fails, logout.
+        await axiosApi.post("/auth/logout", {}, { withCredentials: true });
         return Promise.reject(refreshError);
       }
     }
     // If already retried, reject without further attempts.
+    await axiosApi.post("/auth/logout", {}, { withCredentials: true });
     return Promise.reject(error);
   }
 );
 
 export const api = async <T>(
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: "GET" | "POST" | "PUT" | "DELETE",
   url: string,
   data?: any
 ): Promise<T> => {
-  return axiosApi
-    .request<T>({ method, url, data })
-    .then((res) => res.data);
+  return axiosApi.request<T>({ method, url, data }).then((res) => res.data);
 };
 
 export default api;

@@ -19,7 +19,10 @@ export class SessionsController {
   constructor(private readonly sessionsService: SessionsService) {}
 
   @Post()
-  async create(@Body() createSessionDto: CreateSessionDto, @Request() req) {
+  async create(
+    @Body() createSessionDto: CreateSessionDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.sessionsService.createSession(
       createSessionDto,
       req.user.userId,
@@ -27,12 +30,23 @@ export class SessionsController {
   }
 
   @Get()
-  async findAll(@Request() req) {
+  async findAll(@Request() req: AuthenticatedRequest) {
     return this.sessionsService.getSessionsForUser(req.user.userId);
   }
 
+  @Get(':sessionId')
+  async find(
+    @Param('sessionId') sessionId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.sessionsService.getSessionForUser(req.user.userId, sessionId);
+  }
+
   @Delete(':sessionId')
-  async deleteSession(@Param('sessionId') sessionId: string, @Request() req) {
+  async deleteSession(
+    @Param('sessionId') sessionId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.sessionsService.deleteSession(sessionId, req.user.userId);
   }
 
@@ -40,12 +54,12 @@ export class SessionsController {
   async invite(
     @Param('sessionId') sessionId: string,
     @Body() createInvitationDto: CreateInvitationDto,
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.sessionsService.inviteUser(
       sessionId,
       createInvitationDto,
-      req.user.id,
+      req.user.userId,
     );
   }
 
@@ -53,13 +67,20 @@ export class SessionsController {
   async removeInvite(
     @Param('sessionId') sessionId: string,
     @Param('token') token: string,
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
   ) {
-    return this.sessionsService.removeInvitation(sessionId, token, req.user.id);
+    return this.sessionsService.removeInvitation(
+      sessionId,
+      token,
+      req.user.userId,
+    );
   }
 
   @Post(':sessionId/leave')
-  async leave(@Param('sessionId') sessionId: string, @Request() req) {
-    return this.sessionsService.leaveSession(sessionId, req.user.id);
+  async leave(
+    @Param('sessionId') sessionId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.sessionsService.leaveSession(sessionId, req.user.userId);
   }
 }

@@ -7,14 +7,14 @@ import { yCollab } from "y-codemirror.next";
 import { WebsocketProvider } from "y-websocket";
 
 export interface CollaborativeCodeMirrorProps {
-  user: { id: string; name: string; email: string; color: string; colorLight?: string };
+  user: UserProfile;
 }
 
 export default function CollaborativeCodeMirror({
   user,
 }: CollaborativeCodeMirrorProps) {
   const [extensions, setExtensions] = useState<Extension[]>([]);
-  const [docValue, setDocValue] = useState<string>();
+  const [docValue, setDocValue] = useState<string>("\n\n\n");
 
   // Store Y.Doc and provider in refs so they persist across renders.
   const ydocRef = useRef<Y.Doc | null>(null);
@@ -26,7 +26,11 @@ export default function CollaborativeCodeMirror({
     ydocRef.current = ydoc;
 
     // Create provider with your signaling URL and room name.
-    const provider = new WebsocketProvider("ws://localhost:1234", "default-room", ydoc);
+    const provider = new WebsocketProvider(
+      "ws://localhost:1234",
+      "default-room",
+      ydoc
+    );
     providerRef.current = provider;
 
     const ytext = ydoc.getText("codemirror");
@@ -58,7 +62,7 @@ export default function CollaborativeCodeMirror({
       provider.disconnect();
       ydoc.destroy();
     };
-  }, []); // Empty dependency ensures this runs only once
+  }, [user]); // Empty dependency ensures this runs only once
 
   // Separate effect to update awareness when user prop changes.
   useEffect(() => {

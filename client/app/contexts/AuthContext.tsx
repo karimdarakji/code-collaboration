@@ -1,60 +1,34 @@
-'use client';
+"use client";
 
-import {
-  FC,
-  PropsWithChildren,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import api from "../api/axiosInstance";
-import { usePathname, useRouter } from "next/navigation";
+import { FC, PropsWithChildren, createContext, useContext } from "react";
+import { useGetUser } from "../api/users";
+import { usePathname } from "next/navigation";
 
 interface AuthContextValues {
-  user?: UserProfile;
+  user: UserProfile;
 }
 
 const AuthContext = createContext<AuthContextValues | null>(null);
 
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
-  const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserProfile>();
-  const [loading, setLoading] = useState(true);
+  const { data: user, isLoading, isError } = useGetUser();
 
-  const fetchUser = async () => {
-    try {
-      const data = await api<UserProfile>("GET", "auth/profile");
-      setUser(data);
-      if (pathname === '/') {
-        router.replace('/sessions');
-      }
-    } catch (err: any) {
-      if (err.response && err.response.status === 401) {
-        if (pathname !== '/') {
-          router.replace('/');
-        }
-      }
-      setUser(undefined);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (isLoading) {
+    return null;
+  }
 
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-  if (loading) {
+  if (isError && pathname !== "/") {
     return null;
   }
 
   return (
-    <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user: user! }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 
-export function useAuth() {
-  return useContext(AuthContext);
+export function useAuth(): AuthContextValues {
+  return useContext(AuthContext)!;
 }

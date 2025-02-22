@@ -13,6 +13,13 @@ export const useGetSessions = () => {
   });
 };
 
+export const useGetSession = ({ sessionId }: QueryParams) => {
+  return useQuery<Session>({
+    queryKey: ["sessions", sessionId],
+    queryFn: () => api("GET", `sessions/${sessionId}`),
+  });
+};
+
 export const useCreateSession = (
   options?: Omit<
     UseMutationOptions<Session, Error, Partial<Session>>,

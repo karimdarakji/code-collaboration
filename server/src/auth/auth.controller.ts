@@ -1,4 +1,15 @@
-import { Controller, Get, HttpCode, HttpStatus, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { GoogleOauthGuard } from 'src/guards/google-oauth.guard';
 import { AuthService } from './auth.service';
 import { JwtGuard } from 'src/guards/jwt.guard';
@@ -32,18 +43,17 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtGuard)
-  profile(@Req() req) {
-    const user = this.userService.findOne({ email: req.user?.email });
+  async profile(@Req() req: AuthenticatedRequest) {
+    const user = await this.userService.findOne({ email: req.user.email });
     if (!user) {
       throw new NotFoundException('User not found!');
     }
     return user;
   }
 
-
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Req() req, @Res() res) {
+  async refresh(@Req() req: AuthenticatedRequest, @Res() res) {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token provided');
@@ -58,5 +68,24 @@ export class AuthController {
       secure: false,
     });
     return res.json(tokens);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res) {
+    // Clear cookies by setting them with an expired date.
+    res.cookie('accessToken', '', {
+      httpOnly: true,
+      secure: false,
+      expires: new Date(0),
+      path: '/',
+    });
+    res.cookie('refreshToken', '', {
+      httpOnly: true,
+      secure: false,
+      expires: new Date(0),
+      path: '/',
+    });
+    return { message: 'Logged out successfully' };
   }
 }
