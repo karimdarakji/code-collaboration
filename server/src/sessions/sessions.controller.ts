@@ -20,12 +20,20 @@ export class SessionsController {
 
   @Post()
   async create(@Body() createSessionDto: CreateSessionDto, @Request() req) {
-    return this.sessionsService.createSession(createSessionDto, req.user.userId);
+    return this.sessionsService.createSession(
+      createSessionDto,
+      req.user.userId,
+    );
   }
 
   @Get()
   async findAll(@Request() req) {
     return this.sessionsService.getSessionsForUser(req.user.userId);
+  }
+
+  @Delete(':sessionId')
+  async deleteSession(@Param('sessionId') sessionId: string, @Request() req) {
+    return this.sessionsService.deleteSession(sessionId, req.user.userId);
   }
 
   @Post(':sessionId/invite')

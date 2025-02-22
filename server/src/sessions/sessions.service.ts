@@ -30,9 +30,25 @@ export class SessionsService {
       ...createSessionDto,
       createdBy: userId,
       participants: [userId],
-      // The creator gets read-write rights by default (you can extend this logic later)
+      // The creator gets read-write rights by default (logic can be extended later)
     });
     return session.save();
+  }
+
+  async deleteSession(sessionId: string, userId: Types.ObjectId) {
+    const session = await this.sessionModel.findById(sessionId);
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    if (session.createdBy !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete this session',
+      );
+    }
+
+    await this.sessionModel.deleteOne({ _id: sessionId });
+    return session;
   }
 
   async inviteUser(
@@ -100,6 +116,9 @@ export class SessionsService {
   }
 
   async getSessionsForUser(userId: string): Promise<Session[]> {
-    return this.sessionModel.find({ participants: userId }).populate('participants').exec();
+    return this.sessionModel
+      .find({ participants: userId })
+      .populate('participants')
+      .exec();
   }
 }

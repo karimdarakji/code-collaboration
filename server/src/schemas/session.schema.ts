@@ -25,7 +25,11 @@ export class Invitation {
   @Prop({ required: true })
   email: string;
 
-  @Prop({ required: true, enum: InvitationStatus, default: InvitationStatus.PENDING })
+  @Prop({
+    required: true,
+    enum: InvitationStatus,
+    default: InvitationStatus.PENDING,
+  })
   status: InvitationStatus;
 
   @Prop({ required: true })
@@ -51,7 +55,11 @@ export class Session {
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
   participants: Types.ObjectId[];
 
-  @Prop({ required: true, enum: SessionVisibility, default: SessionVisibility.PUBLIC })
+  @Prop({
+    required: true,
+    enum: SessionVisibility,
+    default: SessionVisibility.PUBLIC,
+  })
   visibility: SessionVisibility;
 
   @Prop({ type: [InvitationSchema], default: [] })

@@ -6,6 +6,7 @@ export enum SessionVisibility {
 export enum ButtonVariant {
   PRIMARY = "primary",
   SECONDARY = "secondary",
+  DANGER = "danger",
 }
 
 export enum AlertVariant {

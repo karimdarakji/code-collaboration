@@ -3,13 +3,13 @@
 import { AlertVariant, ButtonVariant, SessionVisibility } from "@/contants";
 import React, { FormEvent, useState } from "react";
 import Button from "../components/Button";
-import api from "../api/axiosInstance";
 import { useRouter } from "next/navigation";
-import ModalContent from "../components/Modal/ModalContent";
-import ModalHeader from "../components/Modal/ModalHeader";
-import ModalBody from "../components/Modal/ModalBody";
-import Modal from "../components/Modal/Modal";
+import ModalContent from "../components/Modals/ModalContent";
+import ModalHeader from "../components/Modals/ModalHeader";
+import ModalBody from "../components/Modals/ModalBody";
+import Modal from "../components/Modals/Modal";
 import Alert from "../components/Alerts/Alert";
+import { useCreateSession } from "../api/sessions";
 
 interface CreateSessionModalProps {
   show: boolean;
@@ -17,33 +17,31 @@ interface CreateSessionModalProps {
 }
 const CreateSessionModal = ({ show, onClose }: CreateSessionModalProps) => {
   const router = useRouter();
-  const [error, setError] = useState("");
   const [session, setSession] = useState({
     title: "",
     description: "",
     visibility: SessionVisibility.PUBLIC,
   });
 
+  const { mutate: createSession, isError, error } = useCreateSession();
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      setError("");
-      if (!session.title) {
-        return;
-      }
-      const data = await api<Session>("POST", "sessions", {
+    if (!session.title) {
+      return;
+    }
+    createSession(
+      {
         title: session.title,
         description: session.description,
         visibility: session.visibility,
-      });
-      router.push(`/sessions/${data.slug}`);
-    } catch (error: any) {
-      if (error?.response) {
-        setError(error.response.data.message);
-      } else {
-        setError("An error occurred while submitting");
+      },
+      {
+        onSuccess: (data: Session) => {
+          router.push(`/sessions/${data.slug}`);
+        },
       }
-    }
+    );
   };
 
   const handleChange = (
@@ -64,7 +62,13 @@ const CreateSessionModal = ({ show, onClose }: CreateSessionModalProps) => {
   return (
     <Modal>
       <ModalContent>
-        {error && <Alert variant={AlertVariant.DANGER} title="Error!" message={error} />}
+        {isError && error && (
+          <Alert
+            variant={AlertVariant.DANGER}
+            title="Error!"
+            message={error.message || "An error occurred"}
+          />
+        )}
         <ModalHeader title="Create New Session" onClose={onClose} />
         <ModalBody>
           <form onSubmit={handleSubmit}>

@@ -1,21 +1,24 @@
+import { SessionVisibility } from "./contants";
+
 declare global {
-    interface Window {
-      google?: any;
-    }
+  interface Window {
+    google?: any;
+  }
 
-    interface UserProfile {
-      _id: ObjectId;
-      name: string;
-      avatar: string;
-    }
+  interface UserProfile {
+    _id: ObjectId;
+    name: string;
+    avatar: string;
+  }
 
-    interface Session {
-      _id: string;
-      slug: string;
-      participants: UserProfile[];
-      title: string;
-      description: string;
-    }
+  interface Session {
+    _id: string;
+    slug: string;
+    participants: UserProfile[];
+    title: string;
+    description: string;
+    visibility: SessionVisibility;
+  }
 }
 
 export {};
