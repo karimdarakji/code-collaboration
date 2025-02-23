@@ -33,7 +33,7 @@ const Session = () => {
       <div className="flex">
         {/* Left Half: Custom Editor */}
         <div className="w-1/2">
-          <DynamicCollaborativeCodeMirror user={user} />
+          <DynamicCollaborativeCodeMirror user={user} session={session} />
         </div>
         {/* Right Half: Empty (or add additional content if needed) */}
         <div className="w-1/2"></div>

@@ -13,3 +13,9 @@ export enum AlertVariant {
   DANGER = "danger",
   INFO = "info",
 }
+
+export enum InvitationStatus {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  DECLINED = "declined",
+}

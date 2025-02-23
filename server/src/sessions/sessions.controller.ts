@@ -57,21 +57,21 @@ export class SessionsController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.sessionsService.inviteUser(
+      req.user.userId,
       sessionId,
       createInvitationDto,
-      req.user.userId,
     );
   }
 
-  @Delete(':sessionId/invite/:token')
+  @Delete(':sessionId/invite/:email')
   async removeInvite(
     @Param('sessionId') sessionId: string,
-    @Param('token') token: string,
+    @Param('email') email: string,
     @Request() req: AuthenticatedRequest,
   ) {
     return this.sessionsService.removeInvitation(
       sessionId,
-      token,
+      email,
       req.user.userId,
     );
   }

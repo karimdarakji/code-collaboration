@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useDeleteSession, useGetSessions } from "../api/sessions";
 import ExitButton from "../components/Buttons/ExitButton";
 import ConfirmModal from "../components/Modals/ConfirmModal";
+import InvitationModal from "../components/Modals/InvitationModal";
+import { ButtonVariant } from "@/contants";
 
 const SessionCards = () => {
   const router = useRouter();
@@ -12,24 +14,31 @@ const SessionCards = () => {
   const { mutate: deleteSession } = useDeleteSession();
 
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const [selectedSessionForInvites, setSelectedSessionForInvites] =
+    useState<Session | null>(null);
 
   const handleDeleteClick = (sessionId: string) => {
     setSessionToDelete(sessionId);
-    setShowConfirmModal(true);
   };
 
   const handleConfirmDelete = () => {
     if (sessionToDelete) {
       deleteSession(sessionToDelete);
     }
-    setShowConfirmModal(false);
     setSessionToDelete(null);
   };
 
   const handleCancelDelete = () => {
-    setShowConfirmModal(false);
     setSessionToDelete(null);
+  };
+
+  const openInvitations = (session: Session) => {
+    setSelectedSessionForInvites(session);
+  };
+
+  const closeInvitationModal = () => {
+    setSelectedSessionForInvites(null);
   };
 
   if (isPending) {
@@ -53,7 +62,12 @@ const SessionCards = () => {
             </h2>
             <p className="mt-2">{session.description}</p>
             <Avatars participants={session.participants} />
-            <div className="mt-4 text-right">
+            <div className="mt-4 text-right flex justify-end gap-3">
+              <Button
+                variant={ButtonVariant.SECONDARY}
+                text="Show invites"
+                onClick={() => openInvitations(session)}
+              />
               <Button
                 text="Join session"
                 onClick={() => router.push(`/sessions/${session._id}`)}
@@ -62,12 +76,18 @@ const SessionCards = () => {
           </div>
         ))}
       </div>
-      {showConfirmModal && (
+      {sessionToDelete && (
         <ConfirmModal
           title="Confirm Deletion"
           message="Are you sure you want to delete this session?"
           onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
+          onClose={handleCancelDelete}
+        />
+      )}
+      {selectedSessionForInvites && (
+        <InvitationModal
+          sessionId={selectedSessionForInvites._id}
+          onClose={closeInvitationModal}
         />
       )}
     </>

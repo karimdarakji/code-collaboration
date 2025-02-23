@@ -2,9 +2,11 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateSessionDto } from './dto/create-session.dto';
 import {
@@ -52,17 +54,16 @@ export class SessionsService {
   }
 
   async inviteUser(
+    userId: string,
     sessionId: string,
     createInvitationDto: CreateInvitationDto,
-    inviterId: string,
   ): Promise<Session> {
     const session = await this.sessionModel.findById(sessionId);
     if (!session) {
       throw new NotFoundException('Session not found');
     }
-    // Only allow if the inviter is a participant.
-    if (!session.participants.includes(new Types.ObjectId(inviterId))) {
-      throw new ForbiddenException('Not authorized to invite');
+    if (session.createdBy.toString() !== userId) {
+      throw new UnauthorizedException();
     }
     // Create a unique invitation token.
     const token = uuidv4();
@@ -71,22 +72,25 @@ export class SessionsService {
       token,
       status: InvitationStatus.PENDING,
     };
-    session.invitations.push(invitation);
-    const updatedSession = await session.save();
-
+    if (
+      session.invitations.some((inv) => inv.email === createInvitationDto.email)
+    ) {
+      throw new ConflictException('User already invited');
+    }
     // Send an email to the invitee.
-    const invitationLink = `${process.env.ORIGIN}/sessions/${session._id}?inviteToken=${token}`;
+    const invitationLink = `${process.env.ORIGIN}/sessions/${session._id.toString()}?inviteToken=${token}`;
     await this.mailerService.sendInvitationEmail(
       createInvitationDto.email,
       invitationLink,
     );
-
+    session.invitations.push(invitation);
+    const updatedSession = await session.save();
     return updatedSession;
   }
 
   async removeInvitation(
     sessionId: string,
-    invitationToken: string,
+    email: string,
     requesterId: string,
   ): Promise<Session> {
     const session = await this.sessionModel.findById(sessionId);
@@ -98,7 +102,7 @@ export class SessionsService {
       throw new ForbiddenException('Not authorized to remove invitations');
     }
     session.invitations = session.invitations.filter(
-      (invite) => invite.token !== invitationToken,
+      (invite) => invite.email !== email,
     );
     return session.save();
   }

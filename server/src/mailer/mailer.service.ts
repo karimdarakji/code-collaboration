@@ -3,10 +3,13 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailerService {
-  private transporter;
+  private transporter: nodemailer.Transporter;
   constructor() {
     this.transporter = nodemailer.createTransport({
       service: 'Gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -14,7 +17,10 @@ export class MailerService {
     });
   }
 
-  async sendInvitationEmail(email: string, invitationLink: string) {
+  async sendInvitationEmail(
+    email: string,
+    invitationLink: string,
+  ): Promise<nodemailer.SentMessageInfo> {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,

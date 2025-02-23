@@ -10,26 +10,26 @@ interface ConfirmModalProps {
   title: string;
   message: string;
   onConfirm: () => void;
-  onCancel: () => void;
+  onClose: () => void;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
   title,
   message,
   onConfirm,
-  onCancel,
+  onClose,
 }) => {
   return (
     <Modal>
       <ModalContent>
-        <ModalHeader title={title} onClose={onCancel} />
+        <ModalHeader title={title} onClose={onClose} />
         <ModalBody>
           <p className="mb-4">{message}</p>
           <div className="flex justify-end space-x-2">
             <Button
               variant={ButtonVariant.SECONDARY}
               text="Cancel"
-              onClick={onCancel}
+              onClick={onClose}
             />
             <Button
               variant={ButtonVariant.DANGER}

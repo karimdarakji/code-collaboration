@@ -4,6 +4,7 @@ interface ButtonProps {
   type?: "button" | "submit" | "reset";
   variant?: ButtonVariant;
   text: string;
+  disabled?: boolean;
   onClick?: () => void;
 }
 
@@ -24,6 +25,7 @@ const Button = ({
   type = "button",
   variant = ButtonVariant.PRIMARY,
   text,
+  disabled = false,
   onClick,
 }: ButtonProps) => {
   const classNameType = getClassNameVariant(variant);
@@ -31,7 +33,12 @@ const Button = ({
     <button
       type={type}
       onClick={onClick}
-      className={`inline-flex items-center px-3 py-2 text-sm font-medium text-center rounded-lg focus:ring-4 focus:outline-none ${classNameType}`}
+      className={`${
+        disabled ? "cursor-not-allowed" : ""
+      } inline-flex items-center px-3 py-2 text-sm font-medium text-center rounded-lg ${
+        !disabled ? "focus:ring-4 focus:outline-none" : ""
+      } ${classNameType}`}
+      disabled={disabled}
     >
       {text}
     </button>

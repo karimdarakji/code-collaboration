@@ -1,4 +1,4 @@
-import { SessionVisibility } from "./contants";
+import { InvitationStatus, SessionVisibility } from "./contants";
 
 declare global {
   interface Window {
@@ -8,6 +8,7 @@ declare global {
   interface UserProfile {
     _id: ObjectId;
     name: string;
+    email: string;
     avatar: string;
   }
 
@@ -18,6 +19,13 @@ declare global {
     title: string;
     description: string;
     visibility: SessionVisibility;
+    invitations: Invitation[];
+  }
+
+  interface Invitation {
+    email: string;
+    token: string;
+    status: InvitationStatus;
   }
 
   interface QueryParams {

@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import slugify from 'slugify';
 
-export type SessionDocument = Session & Document;
+export type SessionDocument = HydratedDocument<Session>;
 
 export enum SessionVisibility {
   PUBLIC = 'public',

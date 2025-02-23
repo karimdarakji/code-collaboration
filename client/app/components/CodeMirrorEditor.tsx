@@ -8,10 +8,12 @@ import { WebsocketProvider } from "y-websocket";
 
 export interface CollaborativeCodeMirrorProps {
   user: UserProfile;
+  session: Session;
 }
 
 export default function CollaborativeCodeMirror({
   user,
+  session,
 }: CollaborativeCodeMirrorProps) {
   const [extensions, setExtensions] = useState<Extension[]>([]);
   const [docValue, setDocValue] = useState<string>("\n\n\n");
@@ -28,7 +30,7 @@ export default function CollaborativeCodeMirror({
     // Create provider with your signaling URL and room name.
     const provider = new WebsocketProvider(
       "ws://localhost:1234",
-      "default-room",
+      session._id,
       ydoc
     );
     providerRef.current = provider;
