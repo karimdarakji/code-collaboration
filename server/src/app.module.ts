@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { RefreshTokenModule } from './auth/refresh-token.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { MailerModule } from './mailer/mailer.module';
+import { CollabGateway } from './collab/collab.gateway';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { MailerModule } from './mailer/mailer.module';
     MailerModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CollabGateway],
 })
 export class AppModule {}

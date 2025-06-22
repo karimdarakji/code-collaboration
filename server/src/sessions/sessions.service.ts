@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateSessionDto } from './dto/create-session.dto';
 import {
@@ -15,13 +15,16 @@ import {
   SessionDocument,
 } from 'src/schemas/session.schema';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { UpdateInvitationDto } from './dto/update-invitation.dto';
 import { MailerService } from '../mailer/mailer.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class SessionsService {
   constructor(
     @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
     private readonly mailerService: MailerService,
+    private readonly usersService: UsersService,
   ) {}
 
   async createSession(
@@ -30,8 +33,8 @@ export class SessionsService {
   ): Promise<Session> {
     const session = new this.sessionModel({
       ...createSessionDto,
-      createdBy: userId,
-      participants: [userId],
+      createdBy: new Types.ObjectId(userId),
+      participants: [new Types.ObjectId(userId)],
       // The creator gets read-write rights by default (logic can be extended later)
     });
     return session.save();
@@ -78,7 +81,7 @@ export class SessionsService {
       throw new ConflictException('User already invited');
     }
     // Send an email to the invitee.
-    const invitationLink = `${process.env.ORIGIN}/sessions/${session._id.toString()}?inviteToken=${token}`;
+    const invitationLink = `${process.env.ORIGIN}/invitations/${token}`;
     await this.mailerService.sendInvitationEmail(
       createInvitationDto.email,
       invitationLink,
@@ -121,7 +124,7 @@ export class SessionsService {
 
   async getSessionsForUser(userId: string): Promise<Session[]> {
     return this.sessionModel
-      .find({ participants: userId })
+      .find({ participants: new Types.ObjectId(userId) })
       .populate('participants')
       .exec();
   }
@@ -131,7 +134,57 @@ export class SessionsService {
     sessionId: string,
   ): Promise<Session | null> {
     return this.sessionModel
-      .findOne({ participants: userId, _id: sessionId })
+      .findOne({ participants: new Types.ObjectId(userId), _id: sessionId })
+      .populate('participants')
+      .exec();
+  }
+
+  async updateInvitationStatus(
+    sessionId: string,
+    token: string,
+    updateInvitationDto: UpdateInvitationDto,
+  ): Promise<Session> {
+    const session = await this.sessionModel.findById(sessionId);
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    const invitation = session.invitations.find((inv) => inv.token === token);
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or invalid token');
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new ConflictException('Invitation has already been processed');
+    }
+
+    // Update the invitation status
+    invitation.status = updateInvitationDto.status;
+
+    // If accepted, add the user to participants
+    if (updateInvitationDto.status === InvitationStatus.ACCEPTED) {
+      const user = await this.usersService.findOne({ email: invitation.email });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if user is already a participant
+      const userId = (user as { _id: Types.ObjectId })._id.toString();
+      if (
+        !session.participants.some(
+          (participantId) => participantId.toString() === userId,
+        )
+      ) {
+        session.participants.push((user as { _id: Types.ObjectId })._id);
+      }
+    }
+
+    return session.save();
+  }
+
+  async getSessionByInvitationToken(token: string): Promise<Session | null> {
+    return this.sessionModel
+      .findOne({ 'invitations.token': token })
       .populate('participants')
       .exec();
   }

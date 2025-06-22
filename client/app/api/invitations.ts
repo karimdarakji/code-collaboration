@@ -1,5 +1,10 @@
-import { useMutation, UseMutationOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  UseMutationOptions,
+  useQuery,
+} from "@tanstack/react-query";
 import api from "./axiosInstance";
+import { InvitationStatus } from "@/contants";
 
 export const useCreateSessionInvitation = (
   options?: Omit<
@@ -58,5 +63,51 @@ export const useDeleteSessionInvitation = (
       }
     },
     ...restOptions,
+  });
+};
+
+export const useUpdateInvitationStatus = (
+  options?: Omit<
+    UseMutationOptions<
+      Session,
+      Error,
+      { sessionId: string; token: string; status: InvitationStatus }
+    >,
+    "mutationFn" | "onSuccess"
+  > & {
+    onSuccess?: (
+      data: Session,
+      variables: { sessionId: string; token: string; status: InvitationStatus },
+      context?: unknown
+    ) => void;
+  }
+) => {
+  const { onSuccess: customOnSuccess, ...restOptions } = options || {};
+
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      token,
+      status,
+    }: {
+      sessionId: string;
+      token: string;
+      status: InvitationStatus;
+    }): Promise<Session> =>
+      api("POST", `sessions/${sessionId}/invite/${token}/status`, { status }),
+    onSuccess: (data, variables, context) => {
+      if (customOnSuccess) {
+        customOnSuccess(data, variables, context);
+      }
+    },
+    ...restOptions,
+  });
+};
+
+export const useGetSessionByInvitationToken = (token: string) => {
+  return useQuery({
+    queryKey: ["session", "invitation", token],
+    queryFn: (): Promise<Session> => api("GET", `sessions/invitation/${token}`),
+    enabled: !!token,
   });
 };

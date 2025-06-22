@@ -11,6 +11,7 @@ import {
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { UpdateInvitationDto } from './dto/update-invitation.dto';
 import { JwtGuard } from 'src/guards/jwt.guard';
 
 @Controller('sessions')
@@ -82,5 +83,23 @@ export class SessionsController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.sessionsService.leaveSession(sessionId, req.user.userId);
+  }
+
+  @Post(':sessionId/invite/:token/status')
+  async updateInvitationStatus(
+    @Param('sessionId') sessionId: string,
+    @Param('token') token: string,
+    @Body() updateInvitationDto: UpdateInvitationDto,
+  ) {
+    return this.sessionsService.updateInvitationStatus(
+      sessionId,
+      token,
+      updateInvitationDto,
+    );
+  }
+
+  @Get('invitation/:token')
+  async getSessionByInvitationToken(@Param('token') token: string) {
+    return this.sessionsService.getSessionByInvitationToken(token);
   }
 }

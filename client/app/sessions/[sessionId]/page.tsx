@@ -18,25 +18,30 @@ const Session = () => {
   const { data: session, isPending } = useGetSession({ sessionId });
 
   if (isPending || !session || !user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading session...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4">
+    <div className="h-screen flex flex-col bg-gray-900">
       {/* Top Section: Session Title and Description */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">{session.title}</h1>
-        <p className="text-white">{session.description}</p>
+      <div className="p-4 bg-gray-800 border-b border-gray-700">
+        <h1 className="text-2xl font-bold text-white mb-2">{session.title}</h1>
+        <p className="text-gray-300">{session.description}</p>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex">
-        {/* Left Half: Custom Editor */}
-        <div className="w-1/2">
+      <div className="flex-1 flex">
+        {/* Full Width: Collaborative Editor */}
+        <div className="w-full">
           <DynamicCollaborativeCodeMirror user={user} session={session} />
         </div>
-        {/* Right Half: Empty (or add additional content if needed) */}
-        <div className="w-1/2"></div>
       </div>
     </div>
   );
